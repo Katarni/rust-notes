@@ -96,3 +96,62 @@ impl String {
 *Trait object* всегда !Sized (те его размер не известен) => если мы хотим, чтобы наш *trait* никогда не был dynamic, просто скажите, что он Self: Sized
 
 Dynamic dispatch не нуждается в генерации тонны кода и будет делать все через *vtable* Это уменьшение времени компиляции, но и минус в оптимизации под разные типы.
+
+### generic 
+
+Есть два вида *generic trait*: *associated type* и *type parameter*. Советуют использовать *associated* там, где у *trait* будет ровно одна реализация для структуры, и *parameter* в противном случае. 
+
+```rust
+struct S {
+    a: i32,
+}
+
+trait A {
+    type T;
+
+    fn contains(&self, _: Self::T);
+}
+
+impl A for S {
+    type T = i32;
+
+    fn contains(&self, n1: Self::T) {
+        // do stuff here
+    }
+}
+
+fn main() {
+    let st = S {a: 2};
+    st.contains(3);
+}
+```
+*листинг 2.6: пример associated type trait*
+
+Добавление еще одной реализации *T* для *S* (но с другим *A*) приведет к ошибке
+
+```rust
+struct S {
+    a: i32,
+}
+
+trait A<T> {
+    fn contains(&self, _: T);
+}
+
+impl<T> A<T> for S {
+    fn contains(&self, _: T) {
+        // do stuff here
+    }
+}
+
+fn main() {
+    let st = S {a: 2};
+    st.contains(3);
+    st.contains("trait");
+}
+```
+*листинг 2.7: пример type parameter trait*
+
+При использовании *type parameter trait* код **очень** сильно раздувается и компилятор делает много работы, поэтому рекомендуют использовать *associated type* там, где это возможно.
+
+### 
